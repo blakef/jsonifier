@@ -1,0 +1,24 @@
+{
+  "name": "jsonifier",
+  "version": "0.1.0",
+  "description": "Dynamically generates JSON output from templates",
+  "main": "index.js",
+  "scripts": {
+    "test": "node_modules/.bin/mocha",
+    "build": "node_modules/.bin/gulp build"
+  },
+  "main": "dist/jsonifier.min.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/blakef/jsonifier"
+  },
+  "bugs": {
+      "url": "https://github.com/blakef/jsonifier/issues"
+  },
+  "keywords": [
+      "json",
+      "testing"
+  ],
+  "author": "Blake Friedman <blake.friedman@gmail.com>",
+  "license": "MIT"
+}

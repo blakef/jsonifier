@@ -40,7 +40,7 @@ let child = new jsonifier(base, {namespace: 'data'}).add({
     });
 ```
 
-Calling `isonifier#build` returns a generator
+Calling `jsonifier#build` returns a generator
 ```javascript
 // This creates a generator
 

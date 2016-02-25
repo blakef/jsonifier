@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.org/blakef/jsonifier.svg?branch=develop)](https://travis-ci.org/blakef/jsonifier)
 [![Coverage Status](https://coveralls.io/repos/github/blakef/jsonifier/badge.svg?branch=develop)](https://coveralls.io/github/blakef/jsonifier?branch=develop)
 # What?
-Dynamically generates JSON output from templates
+Dynamically generates JSON output from templates.  We're using this for mocking out websocket data for e2e testing.
 
 # Example
 

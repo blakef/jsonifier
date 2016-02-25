@@ -2,7 +2,7 @@
   "name": "jsonifier",
   "version": "0.2.2",
   "description": "Dynamically generates JSON output from templates",
-  "main": "dist/jsonifier.min.js",
+  "main": "dist/jsonifier.js",
   "scripts": {
     "test": "node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha -- -R spec ./test/*",
     "build": "node_modules/.bin/gulp build"

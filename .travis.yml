@@ -1,7 +1,13 @@
 language: node_js
 node_js:
-    - "5"
+- '5'
 branches:
-    only:
-        - master
-        - develop
+  only:
+  - master
+  - develop
+after_script: cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js
+ont:
+  hipchat:
+    com:
+      secure: wokxxsKjDPyC1UDldQlcPkfUKMQqNDrxJzGU9XPFx+EBvn99QohP5aFV1DIzAzwmLk3wPVF+jGd/O/MLiK/ZzMo4QCUcowfn24RoBf/Y5WXzdrhNkMcnDxb/DenlzDN/yTlUV/m+cor1zglGSrypJtpCwB7waLINRcEHLcftckPnlWWFwA0uOLOV3xv4xlRs05iZeCzZl36J1NYnFo6INUc6v2PIxBfMu6gJB9UByW/1AZLXxR9Q745Ovu/qNXPeDeCl8wwyKSX06vc6qLIOIhGRLCVrISdFMi9XXI/4l0jwVV4kIvuh2iOUfMnXK0DX587RI3IF45dyekraNLDrbufWmFEFuCAnJkcNtLU562YXrbywstUzFC6an+qioYcIwvvJVBoZFK75mmPKnBU94eZIZ709p7leWxjP/EeuUTDS/RjiJvMsmNqJf5/3xBzxMlmGn95XMdp+LbGMzp/u0Etv18awfxn9jZFsnFhMIceD8t3uHT8iVTQdsG/1fYRO4ucXLTPGk5er2rpK5snMurvB/iVQIbYegzv9/HPpy++AKC/U/FjuFSW5uHqlNn9eQa9cxFUDZQ0/TSbImvqm6oui0LOTZA+I0bvMeY5KuG8TrWM911QtfpiFQ+srqZ5/ZyvPTVvw1c1JmHT3GxDxl1Yn7lZQd3mnImsab42Rb3k=
+    notify: true

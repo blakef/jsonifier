@@ -7,25 +7,39 @@ function compiler(obj) {
         let result = {};
         Object.keys(obj).forEach(key => result[key] = compiler(obj[key]));
         return result;
-    } else if (_.isArray(obj)) {
-        return obj.map(compiler);
     }
     return obj;
+}
+
+function dynamicCustomiser(objValue, srcValue) {
+    if (_.isFunction(srcValue)) {
+        let result = srcValue();
+        if (result.toString() === '[object Generator]') {
+            srcValue = () => result.next().value;
+        }
+    }
+    return srcValue;
 }
 
 module.exports = class JSONifier {
 
     constructor(state, ops) {
-        this.options =  _.extend({
+        this.options = {
             namespace: undefined,
             limit: -1,
             compiler: compiler
-        }, ops);
+        };
+
+        if (state instanceof JSONifier && _.isObject(ops)) {
+            _.extend(this.options, ops);
+        }
+
+        if (_.isObject(state) && _.isUndefined(ops)) {
+            _.extend(this.options, state);
+        }
 
         if (state instanceof JSONifier) {
             this._state = _.cloneDeep(state._state);
-        } else if (_.isObject(state)) {
-            this._state = _.cloneDeep(state);
         } else {
             this._state = {};
         }
@@ -51,28 +65,13 @@ module.exports = class JSONifier {
                 obj = obj[attrib];
             });
 
-            if (_.isFunction(generator)) {
-                let result = generator();
-                if (result.toString() === '[object Generator]') {
-                    generator = () => result.next().value;
-                }
-                obj[final_step] = result;
-            } else {
-                obj[final_step] = generator;
-            }
+            obj[final_step]  = _.assignWith(generator, generator, dynamicCustomiser);
             return this;
         }
 
-        if (_.isUndefined(generator)) {
-            if (_.isFunction(method)) {
-                this._current = method;
-                return this;
-            }
-
-            if (_.isObject(method)) {
-                _.extend(this._current, method);
-                return this;
-            }
+        if (_.isUndefined(generator) && _.isObject(method)) {
+            _.assignWith(this._current, method, dynamicCustomiser);
+            return this;
         }
 
         throw Error('Illegal use of jsonifier#add');

@@ -4,7 +4,7 @@
   "description": "Dynamically generates JSON output from templates",
   "main": "dist/jsonifier.min.js",
   "scripts": {
-    "test": "node_modules/.bin/gulp test",
+    "test": "node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha -- -R spec ./test/*",
     "build": "node_modules/.bin/gulp build"
   },
   "repository": {
@@ -25,12 +25,14 @@
     "babel-plugin-transform-es2015-modules-commonjs": "^6.5.2",
     "babel-plugin-transform-es2015-modules-umd": "^6.5.0",
     "babel-preset-es2015-node5": "^1.1.2",
+    "coveralls": "^2.11.6",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "gulp-concat": "^2.6.0",
     "gulp-eslint": "^2.0.0",
     "gulp-mocha": "^2.2.0",
     "gulp-sourcemaps": "^1.6.0",
+    "istanbul": "^0.4.2",
     "mocha": "^2.4.5",
     "should": "^8.2.2",
     "source-map-support": "^0.4.0"

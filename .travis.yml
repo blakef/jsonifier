@@ -6,6 +6,9 @@ branches:
   - master
   - develop
 after_script: cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js
+notifications:
+    email: false
+
 ont:
   hipchat:
     com:

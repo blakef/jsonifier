@@ -5,5 +5,3 @@ branches:
     only:
         - master
         - develop
-git:
-    depth: 3

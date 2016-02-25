@@ -2,39 +2,46 @@
 const gulp   = require('gulp');
 const babel  = require('gulp-babel');
 const eslint = require('gulp-eslint');
-const merge  = require('merge-stream');
-const uglify = require('gulp-uglify');
+const concat = require('gulp-concat');
+const mocha  = require('gulp-mocha');
+const sm     = require('gulp-sourcemaps');
 
-
-gulp.task('build', () => {
-    let stream = gulp
-        .src(['./index.js'])
+gulp.task('build', ['lint'], () =>
+    gulp
+        .src('./index.js')
+        .pipe(sm.init())
         .pipe(babel({
-            presets: ['es2015-node5'],
-            plugins: ['transform-es2015-modules-umd']
+            presets: ['es2015-node5']
         }))
-        ;
+        .pipe(sm.write())
+        .pipe(concat('jsonifier.js'))
+        .pipe(gulp.dest('./dist'))
+);
 
-    let normal = stream
-        .pipe(gulp.dest('./dest/jsonififier.js'))
-        ;
-
-    let minified = stream
-        .pipe(uglify())
-        .pipe(gulp.dest('./dest/jsonifier.min.js'))
-        ;
-
-    return merge(minified, normal);
-});
-
-gulp.task('lint', () => {
-    return gulp
-        .src(['./index.js'])
+gulp.task('lint', () =>
+    gulp
+        .src('./index.js')
         .pipe(eslint({
             config: '.eslintrc.json'
         }))
         .pipe(eslint.format())
-        ;
+);
+
+gulp.task('test', ['build'], () =>
+    gulp
+        .src('./test/**/*.spec.js')
+        .pipe(mocha({
+            ui: 'bdd',
+            reporter: 'spec',
+            require: ['should', 'source-map-support/register'],
+            debug: true
+        }))
+);
+
+gulp.task('dev', ['build'], () => {
+    gulp.watch('./index.js', ['test']);
+    gulp.watch('./test/**/*.spec.js', ['test']);
 });
 
-gulp.task('default', ['lint', 'build']);
+
+gulp.task('default', ['build']);

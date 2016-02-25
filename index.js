@@ -1,22 +1,22 @@
-import _ from 'lodash';
+const _ = require('lodash');
 
 function compiler(obj) {
     if (_.isFunction(obj)) {
         return obj();
     } else if (_.isObject(obj)) {
         let result = {};
-        Object.keys(obj).forEach(key => result[key] = compile(obj[key]));
+        Object.keys(obj).forEach(key => result[key] = compiler(obj[key]));
         return result;
     } else if (_.isArray(obj)) {
-        return obj.map(compile);
+        return obj.map(compiler);
     }
     return obj;
 }
 
-export default class JSONifier {
+module.exports = class JSONifier {
 
     constructor(state, ops) {
-        this.options = defaults = _.extend({
+        this.options =  _.extend({
             namespace: undefined,
             limit: -1,
             compiler: compiler
@@ -63,7 +63,7 @@ export default class JSONifier {
             return this;
         }
 
-        if (_.isUndefiend(generator)) {
+        if (_.isUndefined(generator)) {
             if (_.isFunction(method)) {
                 this._current = method;
                 return this;
@@ -75,14 +75,15 @@ export default class JSONifier {
             }
         }
 
-        throw Error(`Illegal use of jsonifier#add`);
+        throw Error('Illegal use of jsonifier#add');
     }
 
     build() {
+        let that = this;
         return function* iterableJSONifier() {
-            for(let i=0; i != this.options.limit; i = (i + 1) % Number.MAX_SAFE_INTEGER) {
-                yield this._compiler(this._state);
+            for(let i=0; i != that.options.limit; i = (i + 1) % Number.MAX_SAFE_INTEGER) {
+                yield that.options.compiler(that._state);
             }
-        }
+        }();
     }
-}
+};

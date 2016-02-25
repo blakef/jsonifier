@@ -1,4 +1,5 @@
-# Note WIP!
+[![Build Status](https://travis-ci.org/blakef/jsonifier.svg?branch=master)](https://travis-ci.org/blakef/jsonifier)
+[![Build Status](https://travis-ci.org/blakef/jsonifier.svg?branch=develop)](https://travis-ci.org/blakef/jsonifier)
 
 # What?
 Dynamically generates JSON output from templates

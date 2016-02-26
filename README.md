@@ -72,6 +72,14 @@ Calling `jsonifier#build` returns a generator
          normal: { '1': { '0': 'a', '1': 'b' }, '2': 'ok' } } }
 ```
 
+### Constructor Options
+
+- namespace: [optional] decimal separated namespace.  All objects `JSONifier#add` are nested in the namespace.  E.g. `'a.b.c' => {'a': {'b': {'c': ... }}}`
+
+- limit: [default: -1] maximum number of times the `JSONifier#build` generator will produce values
+
+- compiler: [optional] a function which is called to convert the internal state into a JSON object of static values.
+
 ## Features
 
 ### Inheritance

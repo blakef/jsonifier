@@ -62,10 +62,13 @@ function createObject(srcObj, ref, finalValue) {
         if (index < steps.length - 1) {
             srcObj = srcObj[attrib];
         } else {
-            srcObj = srcObj[attrib] = finalValue;
+            if (_.isObject(finalValue) && !_.isFunction(finalValue)) {
+                srcObj = _.extend(srcObj[attrib] || {}, finalValue);
+            } else {
+                srcObj = srcObj[attrib] = finalValue;
+            }
         }
     });
-
     return srcObj;
 }
 

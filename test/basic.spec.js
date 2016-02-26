@@ -8,6 +8,17 @@ function testObj(js, obj) {
 
 describe('varying constructor types', function() {
 
+    it('inherits correctly', () => {
+        let a = new jsonifier({namespace: 'a'}).add({1:2});
+        testObj(a, {'a':{1:2}});
+        let b = new jsonifier(a, {namespace: 'a'}).add({2:3});
+        testObj(b, {'a':{1:2, 2:3}});
+        let c = new jsonifier(b, {namespace: 'a'}).add({3:4});
+        testObj(c, {'a':{1:2, 2:3, 3:4}});
+        let d = new jsonifier(c, {namespace: 'a'}).add({4:5});
+        testObj(d, {'a':{1:2, 2:3, 3:4, 4:5}});
+    });
+
     it('the simplest case', () => {
         let simple = new jsonifier().add({
             1: 2
@@ -22,7 +33,7 @@ describe('varying constructor types', function() {
 
     });
 
-    it('namespaces, functions & composite', () => {
+    it('with namespaces, functions & composite', () => {
         let simple = new jsonifier().add({ 1: 2 });
 
         // Namespaces
@@ -63,8 +74,8 @@ describe('object creation shortcut notation', function() {
         testObj(ns, {'a': {'b': {'c': {'d': 'e'}}}});
 
         // Function which would have to be 'compiled'
-        ns = new jsonifier({namespace: 'a.b.c'}).add('d', () => 'e');
-        testObj(ns, {'a': {'b': {'c': {'d': 'e'}}}});
+        ns = new jsonifier({namespace: 'a.b.c'}).add('d', () => 'compiled');
+        testObj(ns, {'a': {'b': {'c': {'d': 'compiled'}}}});
     });
 
 });

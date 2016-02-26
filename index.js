@@ -101,15 +101,23 @@ module.exports = class JSONifier {
             _.extend(this.options, state);
         }
 
-        this._state = state instanceof JSONifier
-            ? _.cloneDeep(state._state)
+        this.state = state instanceof JSONifier
+            ? _.cloneDeep(state.state)
             : {}
             ;
 
         this._current = _.isUndefined(this.options.namespace)
-            ? this._state
-            : createObject(this._state, this.options.namespace, {})
+            ? this.state
+            : createObject(this.state, this.options.namespace, {})
             ;
+    }
+
+    get state() {
+        return this._state;
+    }
+
+    set state(state) {
+        return this._state = state;
     }
 
     /**
@@ -142,7 +150,7 @@ module.exports = class JSONifier {
         let that = this;
         return function* iterableJSONifier() {
             for(let i=0; i != that.options.limit; i = (i + 1) % Number.MAX_SAFE_INTEGER) {
-                yield that.options.compiler(that._state);
+                yield that.options.compiler(that.state);
             }
         }();
     }

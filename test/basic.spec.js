@@ -162,3 +162,62 @@ describe('other more subtle stuff', function() {
     });
 
 });
+
+describe('inheriting and overloading', function() {
+
+    it('should handle overloading state getter / setters', () => {
+        class Foobar extends jsonifier {
+            get state() {
+                return this._foobar;
+            }
+
+            set state(foobar) {
+                return this._foobar = foobar;
+            }
+        }
+        let a = new jsonifier().add({a: 1});
+        let b = new Foobar(a).add({b:2});
+        testObj(b, {'a':1, 'b':2});
+    });
+
+    it('should allow us to completely rework a jsonifier', () => {
+        class Foobar extends jsonifier {
+            constructor(state, ops) {
+                super(state, ops);
+                this.__state = {};
+
+                // Use old path for inheritance
+                this.path = this.path  || '/';
+                this.state = this.__tmp;
+                // Use new path for all that follows
+                this.path = ops ? ops.path || '/' : '/';
+            }
+
+            get state() {
+                return this.path
+                    ? this.__state[this.path]
+                    : this.__tmp
+                    ;
+            }
+
+            set state(s) {
+                return this.path
+                    ? this.__state[this.path] = s
+                    : this.__tmp = s
+                    ;
+            }
+
+            build(path) {
+                this.path = path || '/';
+                return super.build();
+            }
+        }
+
+        let a = new Foobar({path: '/'}).add({1:2});
+        let b = new Foobar(a, {path: '/b'}).add({2:3});
+
+        testObj(b, {1:2});
+        b.build().next().value.should.containDeep({2:3});
+    });
+
+});

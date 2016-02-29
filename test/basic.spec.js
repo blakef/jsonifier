@@ -249,4 +249,25 @@ describe('building', function() {
         testObj(b, {'ns1': {'testing': 'ns1'}, 'ns2': {'testing': 'ns2'}});
     });
 
+    it('create iterators when build() called', () => {
+        let a = new jsonifier().add('a', function* foo() { yield* [1,2]; });
+
+        let b = a.build();
+        b.next().value.should.containDeep({'a': 1});
+        b.next().value.should.containDeep({'a': 2});
+        b.next().value.should.containDeep({'a': undefined});
+
+        // This should generate the exact same output
+        let c = a.build();
+        c.next().value.should.containDeep({'a': 1});
+        c.next().value.should.containDeep({'a': 2});
+        c.next().value.should.containDeep({'a': undefined});
+    });
+
+    it('throws error if building unknown namespace', () => {
+        (function() {
+            new jsonifier().build('What is this?');
+        }).should.throw(/Unknown namespace/);
+    });
+
 });

@@ -2,42 +2,52 @@
 const _ = require('lodash');
 
 /**
- * Converts object to only contain static data
+ * Walks an object applying a function to leaf nodes
  *
- * 	Our state data either has static leaf values or functions which yield static
- * 	values.  This converst the entire object to only contain static data (subject
- * 	to users creating functions which _only_ yield static output)
+ * 	If no function is given, walk returns a deep copy.
  *
- * @method compiler
- * @param  {Object} obj Typically jsonifier state object
+ * @method walker
+ * @param  {Object}     src     Object to walk
+ * @param  {Function}   fn      Function to apply to leaf nodes in Object
  * @return {Object}
  */
-function compiler(obj) {
-    if (_.isFunction(obj)) {
-        return obj();
-    } else if (_.isObject(obj)) {
-        let result = {};
-        Object.keys(obj).forEach(key => result[key] = compiler(obj[key]));
-        return result;
+function walker(src, fn=_.identity) {
+    function walk(obj) {
+        if (_.isObject(obj) && !_.isFunction(obj)) {
+            let result = {};
+            Object.keys(obj).forEach(key => result[key] = walk(obj[key]));
+            return result;
+        }
+        return fn(obj);
     }
-    return obj;
+    return walk(src);
 }
 
 
 /**
- * Converts generators to functions which yield next value
- *
- * 	See [_.assignWith](https://lodash.com/docs#assignInWith)
+ * Runs all functions to produce object with leaf nodes of primitives
+ * @method
+ * @param  {Object} obj Object to be converted
+ * @return {Object}
  */
-function dynamicCustomiser(objValue, srcValue) {
-    if (_.isFunction(srcValue)) {
-        let result = srcValue();
+let compiler = (obj) => walker(obj, o => _.isFunction(o) ? o() : o);
+
+
+/**
+ * Converts Generators to Iterators
+ * @method
+ * @param  {Object} obj Object to be converted
+ * @return {Object}
+ */
+let converter = (obj) => walker(obj, function convertGen(o) {
+    if (_.isFunction(o)) {
+        let result = o();
         if (result.toString() === '[object Generator]') {
-            srcValue = () => result.next().value;
+            o = () => result.next().value;
         }
     }
-    return srcValue;
-}
+    return o;
+});
 
 
 /**
@@ -132,12 +142,13 @@ module.exports = class JSONifier {
      */
     add(method, generator) {
         if (_.isString(method)) {
-            createObject(this._current, method, _.assignWith(generator, generator, dynamicCustomiser));
+            createObject(this._current, method, generator);
+            //_.assignWith(generator, generator, dynamicCustomiser)
             return this;
         }
 
         if (_.isUndefined(generator) && _.isObject(method)) {
-            _.assignWith(this._current, method, dynamicCustomiser);
+            _.assign(this._current, method);
             return this;
         }
 
@@ -161,6 +172,7 @@ module.exports = class JSONifier {
             ;
         let that = this;
         return function* iterableJSONifier() {
+            state = converter(state);
             for(let i=0; i != that.options.limit; i = (i + 1) % Number.MAX_SAFE_INTEGER) {
                 yield that.options.compiler(state);
             }

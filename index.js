@@ -146,14 +146,23 @@ module.exports = class JSONifier {
 
     /**
      * Yields static JSON objects from all inherited instances
-     * @method build
-     * @return {Generator}  which yields JSON objects
+     * @method  build
+     * @param   {String}    namespace   [optional] Namespace to build, defaults to all.
+     * @return  {Generator}             which yields JSON objects
      */
-    build() {
+    build(namespace) {
+        if (namespace && !_.has(this.state, namespace)) {
+            let namespaces = Object.keys(this.state).join(', ');
+            throw Error(`Unknown namespace '${namespace}': ${namespaces}`);
+        }
+        let state = _.isUndefined(namespace)
+            ? this.state
+            : this.state[namespace]
+            ;
         let that = this;
         return function* iterableJSONifier() {
             for(let i=0; i != that.options.limit; i = (i + 1) % Number.MAX_SAFE_INTEGER) {
-                yield that.options.compiler(that.state);
+                yield that.options.compiler(state);
             }
         }();
     }

@@ -232,3 +232,21 @@ describe('inheriting and overloading', function() {
     });
 
 });
+
+describe('building', function() {
+
+    it('builds for namespaces', () => {
+        // Should be the same output
+        let a = new jsonifier({namespace: 'ns1'}).add({'testing': 'ns1'});
+        testObj(a, {'ns1': {'testing': 'ns1'}});
+        a.build('ns1').next().value.should.containDeep({'testing': 'ns1'});
+
+        // Namespace specific builds generate different values on
+        // inherited namespaces
+        let b = new jsonifier(a, {namespace: 'ns2'}).add({'testing': 'ns2'});
+        b.build('ns1').next().value.should.containDeep({'testing': 'ns1'});
+        b.build('ns2').next().value.should.containDeep({'testing': 'ns2'});
+        testObj(b, {'ns1': {'testing': 'ns1'}, 'ns2': {'testing': 'ns2'}});
+    });
+
+});

@@ -1,6 +1,6 @@
 {
   "name": "jsonifier",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Dynamically generates JSON output from templates",
   "main": "dist/jsonifier.js",
   "scripts": {

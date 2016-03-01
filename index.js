@@ -13,7 +13,9 @@ const _ = require('lodash');
  */
 function walker(src, fn=_.identity) {
     function walk(obj) {
-        if (_.isObject(obj) && !_.isFunction(obj)) {
+        if (_.isArray(obj)) {
+            return obj.map(walk);
+        } else if (_.isObject(obj) && !_.isFunction(obj)) {
             let result = {};
             Object.keys(obj).forEach(key => result[key] = walk(obj[key]));
             return result;

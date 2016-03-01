@@ -172,6 +172,11 @@ describe('other more subtle stuff', function() {
         testObj(c, {'a': 'b'});
     });
 
+    it('handles arrays', () => {
+        let a = new jsonifier().add({a: [{b: () => 'c'}]});
+        a.build().next().value['a'].should.be.Array();
+    });
+
 });
 
 describe('inheriting and overloading', function() {

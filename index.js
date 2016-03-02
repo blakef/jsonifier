@@ -12,17 +12,17 @@ const _ = require('lodash');
  * @return {Object}
  */
 function walker(src, fn=_.identity) {
-    function walk(obj) {
+    function walk(obj, parent, key) {
         if (_.isArray(obj)) {
-            return obj.map(walk);
+            return obj.map((o, i) => walk(o, obj, i));
         } else if (_.isObject(obj) && !_.isFunction(obj)) {
             let result = {};
-            Object.keys(obj).forEach(key => result[key] = walk(obj[key]));
+            Object.keys(obj).forEach(k => result[k] = walk(obj[k], obj, k));
             return result;
         }
-        return fn(obj);
+        return fn(obj, parent, key);
     }
-    return walk(src);
+    return walk(src, null, null);
 }
 
 
@@ -32,7 +32,22 @@ function walker(src, fn=_.identity) {
  * @param  {Object} obj Object to be converted
  * @return {Object}
  */
-let compiler = (obj) => walker(obj, o => _.isFunction(o) ? o() : o);
+let compiler = (obj, itersWaiting) => walker(obj, (o, parent, key) => {
+    if (!_.isFunction(o)) {
+        return o;
+    }
+    let result = o();
+    // Hack to figure out if we're getting the result of an iterator
+    if (Object.keys(result).length === 2 && _.has(result, 'value', 'done')) {
+        if (result.done) {
+            itersWaiting.total--;
+            // Stop iterator being called
+            parent[key] = undefined;
+        }
+        return result.value;
+    }
+    return result;
+});
 
 
 /**
@@ -41,11 +56,12 @@ let compiler = (obj) => walker(obj, o => _.isFunction(o) ? o() : o);
  * @param  {Object} obj Object to be converted
  * @return {Object}
  */
-let converter = (obj) => walker(obj, function convertGen(o) {
+let converter = (obj, itersFound) => walker(obj, function convertGen(o) {
     if (_.isFunction(o)) {
         let result = o();
         if (result.toString() === '[object Generator]') {
-            o = () => result.next().value;
+            itersFound.total++;
+            return () => result.next();
         }
     }
     return o;
@@ -97,14 +113,13 @@ module.exports = class JSONifier {
      *
      * @param  {Object}         ops             Optional parameters
      * @param  {String}         ops.namespace   Period separated namespace: 'a.b.c' => {'a': {'b': 'c':{}}}
-     * @param  {Integer}        ops.limit       Limit the number of responses from this instance [default: unlimited]
      * @param  {Function}       ops.compiler    Change the way an instance builds JSON object {@link compiler}
      * @return {JSONifier}
      */
     constructor(state, ops) {
         this.options = {
             namespace: undefined,
-            limit: -1,
+            limit: undefined,
             compiler: compiler
         };
 
@@ -166,9 +181,13 @@ module.exports = class JSONifier {
      */
     build(opt) {
         let state = this.state;
+        let limit = this.options.limit;
 
         if (_.isString(opt)) {
-            opt = { namespace: [opt], nest: false };
+            opt = {
+                namespace: [opt],
+                nest: false
+            };
         }
 
         if (_.isObject(opt)) {
@@ -177,6 +196,7 @@ module.exports = class JSONifier {
                 ? true
                 : opt.nest
                 ;
+            limit = opt.limit;
 
             if (!_.isUndefined(namespace)) {
                 namespace = _.isArray(opt.namespace)
@@ -197,11 +217,28 @@ module.exports = class JSONifier {
             }
         }
 
+
         let that = this;
         return function* iterableJSONifier() {
-            state = converter(state);
-            for(let i=0; i != that.options.limit; i = (i + 1) % Number.MAX_SAFE_INTEGER) {
-                yield that.options.compiler(state);
+            // We use an object here so we can pass an iter count by reference to compiler & converter
+            let iters = { total: 0 };
+            state = converter(state, iters);
+
+            if (_.isUndefined(limit) && iters.total > 0) {
+                /*eslint no-constant-condition:0 */
+                while(true) {
+                    let result = that.options.compiler(state, iters);
+                    if (iters.total > 0) {
+                        yield result;
+                    } else {
+                        return;
+                    }
+                }
+            } else {
+                for(let i=0; i != limit; i = (i + 1) % Number.MAX_SAFE_INTEGER) {
+                    // Doesn't matter if that.__iters underflows, wont affect loop
+                    yield that.options.compiler(state, iters);
+                }
             }
         }();
     }

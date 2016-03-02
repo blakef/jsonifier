@@ -96,7 +96,7 @@ describe('dynamic content', function() {
             }
         });
 
-        let test = gen.build();
+        let test = gen.build({limit:-1});
         test.next().value.should.eql({'test': 'a'});
         test.next().value.should.eql({'test': 'b'});
         test.next().value.should.eql({'test': 'c'});
@@ -112,7 +112,7 @@ describe('dynamic content', function() {
             bob: function* bob() {
                 yield* [1,2];
             }
-        }).build();
+        }).build({limit:-1});
 
         mega.next().value.should.eql({
             test: 'success',
@@ -140,6 +140,57 @@ describe('dynamic content', function() {
                     bob: undefined
                 }
             }
+        });
+    });
+
+});
+
+describe('generators and limit work together', function() {
+    let test = new jsonifier()
+        .add('test', function* test() {
+            yield* [1,2];
+        })
+        .add('foo.man', function* test2() {
+            yield* 'abcd';
+        })
+        ;
+
+    it('runs indefinitely limit is -1', () => {
+        let count=0, output;
+        for(let x of test.build({limit: -1})) {
+            output = x;
+            if (++count > 4) break;
+        }
+        count.should.eql(5);
+        output.should.eql({
+            'test': undefined,
+            'foo': { 'man': undefined }
+        });
+    });
+
+    it('runs limit # of times', () => {
+        let count = 0, output;
+        for(let x of test.build({limit:2})) {
+            output = x;
+            if (++count > 3) break;
+        }
+        count.should.eql(2);
+        output.should.eql({
+            'test': 2,
+            'foo': { 'man': 'b'}
+        });
+    });
+
+    it('runs until all generators have compeleted', () => {
+        let count = 0, output;
+        for(let x of test.build()) {
+            output = x;
+            if (++count > 4) break;
+        }
+        count.should.eql(4);
+        output.should.eql({
+            'test': undefined,
+            'foo': { 'man': 'd'}
         });
     });
 
@@ -301,13 +352,13 @@ describe('building', function() {
         let b = a.build();
         b.next().value.should.eql({'a': 1});
         b.next().value.should.eql({'a': 2});
-        b.next().value.should.eql({'a': undefined});
+        b.next().done.should.be.true();
 
         // This should generate the exact same output
         let c = a.build();
         c.next().value.should.eql({'a': 1});
         c.next().value.should.eql({'a': 2});
-        c.next().value.should.eql({'a': undefined});
+        c.next().done.should.be.true();
     });
 
     it('throws error if building unknown namespace', () => {

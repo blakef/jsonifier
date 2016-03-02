@@ -168,12 +168,15 @@ module.exports = class JSONifier {
         let state = this.state;
 
         if (_.isString(opt)) {
-            opt = { namespace: [opt] };
+            opt = { namespace: [opt], nest: false };
         }
 
         if (_.isObject(opt)) {
             let namespace = opt.namespace;
-            let nest = opt.nest || true;
+            let nest = _.isUndefined(opt.nest)
+                ? true
+                : opt.nest
+                ;
 
             if (!_.isUndefined(namespace)) {
                 namespace = _.isArray(opt.namespace)
@@ -189,7 +192,7 @@ module.exports = class JSONifier {
                 state = _.pick(state, namespace);
             }
 
-            if (nest) {
+            if (!nest) {
                 state = _.assign({}, ..._.values(state));
             }
         }

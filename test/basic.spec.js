@@ -266,16 +266,33 @@ describe('building', function() {
         testObj(b, {'ns1': {'testing': 'ns1'}, 'ns2': {'testing': 'ns2'}});
     });
 
-    it('support build optional arguments', () => {
+    describe('optional arguments', () => {
         let a = new jsonifier({namespace: 'ns1'}).add({'testing': 'ns1'});
         let b = new jsonifier(a, {namespace: 'ns2'}).add({'testing': 'ns2'});
         let c = new jsonifier(b, {namespace: 'ns3'}).add({'outlier': 'here'});
 
-        c.build({nest: true}).next().value.should.eql({'testing': 'ns2', 'outlier': 'here'});
-        c.build({nest: false}).next().value.should.eql({'testing': 'ns2', 'outlier': 'here'});
+        let all = {
+            'ns1':{'testing': 'ns1'},
+            'ns2':{'testing': 'ns2'},
+            'ns3':{'outlier': 'here'}
+        };
 
-        b.build({namespace: 'ns2'}).next().value.should.eql({'testing': 'ns2'});
-        b.build({namespace: 'ns2', nest: false}).next().value.should.eql({'testing': 'ns2'});
+        it('supports nesting augmentation', () => {
+            c.build({nest: true}).next().value.should.eql(all);
+            c.build({nest: false}).next().value.should.eql({'testing': 'ns2', 'outlier': 'here'});
+            c.build('ns1').next().value.should.eql({'testing':'ns1'});
+            c.build().next().value.should.eql(all);
+        });
+
+        it('supports namespacing', () => {
+            b.build({namespace: 'ns2', nest: false}).next().value.should.eql({'testing': 'ns2'});
+            b.build({namespace: 'ns2', nest: true}).next().value.should.eql({'ns2':{'testing': 'ns2'}});
+        });
+
+        it('supports namespacing and nesting', () => {
+            c.build({namespace: 'ns1', nest: false}).next().value.should.eql(all.ns1);
+            c.build({namespace: 'ns1', nest: true}).next().value.should.eql({'ns1': {'testing': 'ns1'}});
+        });
     });
 
     it('create iterators when build() called', () => {

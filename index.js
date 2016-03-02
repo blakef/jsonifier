@@ -160,18 +160,40 @@ module.exports = class JSONifier {
     /**
      * Yields static JSON objects from all inherited instances
      * @method  build
-     * @param   {String}    namespace   [optional] Namespace to build, defaults to all.
+     * @param   {Object}                namespace - [default: all] Only build these namespaces [array|string].
+     *                                  nest - [default: true] keep namespaces in final object.
      * @return  {Generator}             which yields JSON objects
      */
-    build(namespace) {
-        if (namespace && !_.has(this.state, namespace)) {
-            let namespaces = Object.keys(this.state).join(', ');
-            throw Error(`Unknown namespace '${namespace}': ${namespaces}`);
+    build(opt) {
+        let state = this.state;
+
+        if (_.isString(opt)) {
+            opt = { namespace: [opt] };
         }
-        let state = _.isUndefined(namespace)
-            ? this.state
-            : this.state[namespace]
-            ;
+
+        if (_.isObject(opt)) {
+            let namespace = opt.namespace;
+            let nest = opt.nest || true;
+
+            if (!_.isUndefined(namespace)) {
+                namespace = _.isArray(opt.namespace)
+                    ? opt.namespace
+                    : [opt.namespace]
+                    ;
+                let known = Object.keys(this.state);
+                let unknown = _.difference(namespace, known);
+                if (unknown.length > 0) {
+                    throw new Error(`Unknown namespace '${unknown.join(', ')}': ${known.join(', ')}`);
+                }
+
+                state = _.pick(state, namespace);
+            }
+
+            if (nest) {
+                state = _.assign({}, ..._.values(state));
+            }
+        }
+
         let that = this;
         return function* iterableJSONifier() {
             state = converter(state);

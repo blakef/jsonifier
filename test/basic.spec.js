@@ -97,10 +97,10 @@ describe('dynamic content', function() {
         });
 
         let test = gen.build();
-        test.next().value.should.containDeep({'test': 'a'});
-        test.next().value.should.containDeep({'test': 'b'});
-        test.next().value.should.containDeep({'test': 'c'});
-        test.next().value.should.containDeep({'test': undefined});
+        test.next().value.should.eql({'test': 'a'});
+        test.next().value.should.eql({'test': 'b'});
+        test.next().value.should.eql({'test': 'c'});
+        test.next().value.should.eql({'test': undefined});
 
     });
 
@@ -114,7 +114,7 @@ describe('dynamic content', function() {
             }
         }).build();
 
-        mega.next().value.should.containDeep({
+        mega.next().value.should.eql({
             test: 'success',
             foo: {
                 bar: {
@@ -123,7 +123,7 @@ describe('dynamic content', function() {
                 }
             }
         });
-        mega.next().value.should.containDeep({
+        mega.next().value.should.eql({
             test: 'success',
             foo: {
                 bar: {
@@ -132,7 +132,7 @@ describe('dynamic content', function() {
                 }
             }
         });
-        mega.next().value.should.containDeep({
+        mega.next().value.should.eql({
             test: 'success',
             foo: {
                 bar: {

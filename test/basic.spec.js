@@ -134,6 +134,74 @@ describe('dynamic content', function() {
 
 });
 
+describe('generators and limit work together', function() {
+    let test = new jsonifier()
+        .add('test', function* test() {
+            yield* [1,2];
+        })
+        .add('foo.man', function* test2() {
+            yield* 'abcd';
+        })
+        ;
+
+    it('runs indefinitely limit is -1', () => {
+        let count=0, output;
+        for(let x of test.build({limit: -1})) {
+            output = x;
+            if (++count > 4) break;
+        }
+        count.should.eql(5);
+        output.should.eql({
+            'test': undefined,
+            'foo': { 'man': undefined }
+        });
+    });
+
+    it('runs limit # of times', () => {
+        let count = 0, output;
+        for(let x of test.build({limit:2})) {
+            output = x;
+            if (++count > 3) break;
+        }
+        count.should.eql(2);
+        output.should.eql({
+            'test': 2,
+            'foo': { 'man': 'b'}
+        });
+    });
+
+    it('runs until all generators have completed', () => {
+        let count = 0, output;
+        for(let x of test.build()) {
+            output = x;
+            if (++count > 4) break;
+        }
+        count.should.eql(4);
+        output.should.eql({
+            'test': undefined,
+            'foo': { 'man': 'd'}
+        });
+    });
+
+    it('runs all inherited generated to completion', () => {
+        let a = new jsonifier().add('foo', function* foo() { return 1; });
+        let b = new jsonifier(a).add('foobar', function* foobar() { yield* [1,2,3]; });
+
+        let output = [], count = 0;
+        for(let x of b.build()) {
+            output.push(x);
+            if (++count > 3) break;
+        }
+        count.should.eql(3);
+        output.should.have.length(3);
+
+        output[0].should.eql({ foo: 1, foobar: 1 });
+        output[1].should.eql({ foo: undefined, foobar: 2 });
+        output[2].should.eql({ foo: undefined, foobar: 3 });
+    });
+
+});
+
 describe('other more subtle stuff', function() {
 
     it('enforces inheritance order overwriting', () => {
